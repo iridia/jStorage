@@ -56,19 +56,19 @@
 	}
 
 	var
-		/* This is the object, that holds the cached values */
+                // This is the object, that holds the cached values
 		_storage = {},
 
-		/* Actual browser storage (localStorage or globalStorage['domain']) */
+		// Actual browser storage (localStorage or globalStorage['domain']) */
 		_storage_service = {jStorage:"{}"},
 
-		/* DOM element for older IE versions, holds userData behavior */
+		// DOM element for older IE versions, holds userData behavior */
 		_storage_elm = null,
 
-		/* function to encode objects to JSON strings */
+		// function to encode objects to JSON strings
 		json_encode = $.toJSON || Object.toJSON || (window.JSON && (JSON.encode || JSON.stringify)),
 
-		/* function to decode objects from JSON strings */
+                // function to decode objects from JSON strings
 		json_decode = $.evalJSON || (window.JSON && (JSON.decode || JSON.parse)) || function(str){
 			return String(str).evalJSON();
 		};
@@ -87,28 +87,28 @@
                                 service = window.localStorage;
                         else if (window.globalStorage)
                                 service = window.globalStorage[window.location.hostname];
-                } catch(ex) {
-                        /* Firefox fails when touching localStorage/globalStorage and cookies are disabled */
+                } catch(e) {
+                        // Firefox fails when touching localStorage/globalStorage and cookies are disabled
                 }
 
-		/* Check if browser supports userData behavior */
+		// Check if browser supports userData behavior
                 if (service) {
                         _storage_service = service;
                 } else {
 			_storage_elm = document.createElement('link');
 			if(_storage_elm.addBehavior){
 
-				/* Use a DOM element to act as userData storage */
+				// Use a DOM element to act as userData storage
 				_storage_elm.style.behavior = 'url(#default#userData)';
 
-				/* userData element needs to be inserted into the DOM! */
+				// userData element needs to be inserted into the DOM!
 				document.getElementsByTagName('head')[0].appendChild(_storage_elm);
 
 				_storage_elm.load("jStorage");
 				var data = "{}";
 				try{
 					data = _storage_elm.getAttribute("jStorage");
-				}catch(E2){}
+				}catch(e){}
 				_storage_service.jStorage = data;
 			}else{
 				_storage_elm = null;
@@ -116,11 +116,11 @@
 			}
 		}
 
-		/* if jStorage string is retrieved, then decode it */
+		// if jStorage string is retrieved, then decode it
 		if(_storage_service.jStorage){
 			try{
 				_storage = json_decode(String(_storage_service.jStorage));
-			}catch(E3){_storage_service.jStorage = "{}";}
+			}catch(e){_storage_service.jStorage = "{}";}
 		}else{
 			_storage_service.jStorage = "{}";
 		}
@@ -138,7 +138,7 @@
 				_storage_elm.setAttribute("jStorage",_storage_service.jStorage);
 				_storage_elm.save("jStorage");
 			}
-		}catch(E4){/* probably cache is full, nothing is saved this way*/}
+		}catch(e){/* probably cache is full, nothing is saved this way*/}
 	}
 
 	/**
@@ -154,7 +154,7 @@
 	////////////////////////// PUBLIC INTERFACE /////////////////////////
 
 	$.jStorage = {
-		/* Version number */
+		// Version number
 		version: "0.1.3",
 
 		/**
@@ -218,7 +218,7 @@
 			if (window.localStorage){
 				try{
 					localStorage.clear();
-				}catch(E5){}
+				}catch(e){}
 			}
 			return true;
 		},
