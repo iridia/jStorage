@@ -60,7 +60,7 @@
 		_storage = {},
 
 		// Actual browser storage (localStorage or globalStorage['domain']) */
-		_storage_service = {jStorage:"{}"},
+		_storage_service = null,
 
 		// DOM element for older IE versions, holds userData behavior */
 		_storage_elm = null,
@@ -81,20 +81,17 @@
 	 * @returns undefined
 	 */
 	function _init(){
-                var service = null;
                 try {
                         if (window.localStorage)
-                                service = window.localStorage;
+                                _storage_service = window.localStorage;
                         else if (window.globalStorage)
-                                service = window.globalStorage[window.location.hostname];
+                                _storage_service = window.globalStorage[window.location.hostname];
                 } catch(e) {
                         // Firefox fails when touching localStorage/globalStorage and cookies are disabled
                 }
 
 		// Check if browser supports userData behavior
-                if (service) {
-                        _storage_service = service;
-                } else {
+                if (!_storage_service) {
 			_storage_elm = document.createElement('link');
 			if(_storage_elm.addBehavior){
 
@@ -116,12 +113,17 @@
 			}
 		}
 
+                if (!_storage_service)
+                        _storage_service = {jStorage:"{}"};
+
 		// if jStorage string is retrieved, then decode it
-		if(_storage_service.jStorage){
-			try{
+		if (_storage_service.jStorage) {
+			try {
 				_storage = json_decode(String(_storage_service.jStorage));
-			}catch(e){_storage_service.jStorage = "{}";}
-		}else{
+			} catch(e) {
+                                _storage_service.jStorage = "{}";
+                        }
+		} else {
 			_storage_service.jStorage = "{}";
 		}
 	}
@@ -131,14 +133,16 @@
 	 * @returns undefined
 	 */
 	function _save(){
-		try{
+		try {
 			_storage_service.jStorage = json_encode(_storage);
 			// If userData is used as the storage engine, additional
 			if(_storage_elm) {
 				_storage_elm.setAttribute("jStorage",_storage_service.jStorage);
 				_storage_elm.save("jStorage");
 			}
-		}catch(e){/* probably cache is full, nothing is saved this way*/}
+		} catch(e){
+                        // probably cache is full, nothing is saved this way
+                }
 	}
 
 	/**
