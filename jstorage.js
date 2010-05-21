@@ -54,9 +54,9 @@
 	if(!$ || !($.toJSON || Object.toJSON || window.JSON)){
 		throw new Error("jQuery, MooTools or Prototype needs to be loaded before jStorage!");
 	}
-	
+
 	var
-		/* This is the object, that holds the cached values */ 
+		/* This is the object, that holds the cached values */
 		_storage = {},
 
 		/* Actual browser storage (localStorage or globalStorage['domain']) */
@@ -81,20 +81,20 @@
 	 * @returns undefined
 	 */
 	function _init(){
-		/* Check if browser supports localStorage */
-		if(window.localStorage){
-			try {
-				_storage_service = window.localStorage;
-			} catch(E0) {/* Firefox fails when touching localStorage and cookies are disabled */}
-		}
-		/* Check if browser supports globalStorage */
-		else if(window.globalStorage){
-			try {
-				_storage_service = window.globalStorage[window.location.hostname];
-			} catch(E1) {/* Firefox fails when touching localStorage and cookies are disabled */}
-		}
+                var service = null;
+                try {
+                        if (window.localStorage)
+                                service = window.localStorage;
+                        else if (window.globalStorage)
+                                service = window.globalStorage[window.location.hostname];
+                } catch(ex) {
+                        /* Firefox fails when touching localStorage/globalStorage and cookies are disabled */
+                }
+
 		/* Check if browser supports userData behavior */
-		else {
+                if (service) {
+                        _storage_service = service;
+                } else {
 			_storage_elm = document.createElement('link');
 			if(_storage_elm.addBehavior){
 
@@ -159,7 +159,7 @@
 
 		/**
 		 * Sets a key's value.
-		 * 
+		 *
 		 * @param {String} key - Key to set. If this value is not set or not
 		 *				a string an exception is raised.
 		 * @param value - Value to set. This can be any value that is JSON
@@ -172,10 +172,10 @@
 			_save();
 			return value;
 		},
-		
+
 		/**
 		 * Looks up a key in cache
-		 * 
+		 *
 		 * @param {String} key - Key to look up.
 		 * @param {mixed} def - Default value to return, if key didn't exist.
 		 * @returns the key value, default value or <null>
@@ -187,10 +187,10 @@
 			}
 			return typeof(def) == 'undefined' ? null : def;
 		},
-		
+
 		/**
 		 * Deletes a key from cache.
-		 * 
+		 *
 		 * @param {String} key - Key to delete.
 		 * @returns true if key existed or false if it didn't
 		 */
@@ -206,7 +206,7 @@
 
 		/**
 		 * Deletes everything in cache.
-		 * 
+		 *
 		 * @returns true
 		 */
 		flush: function(){
@@ -222,10 +222,10 @@
 			}
 			return true;
 		},
-		
+
 		/**
 		 * Returns a read-only copy of _storage
-		 * 
+		 *
 		 * @returns Object
 		*/
 		storageObj: function(){
