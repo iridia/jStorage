@@ -50,26 +50,25 @@
  *
  */
 
-(function($){
-	if(!$ || !($.toJSON || Object.toJSON || window.JSON)){
+(function($) {
+	if(!$ || !($.toJSON || Object.toJSON || window.JSON))
 		throw new Error("jQuery, MooTools or Prototype needs to be loaded before jStorage!");
-	}
 
 	var
                 // This is the object, that holds the cached values
-		_storage = {},
+		storage = {},
 
 		// Actual browser storage (localStorage or globalStorage['domain']) */
-		_storage_service = null,
+		storageService = null,
 
 		// DOM element for older IE versions, holds userData behavior */
-		_storage_elm = null,
+		storageElement = null,
 
 		// function to encode objects to JSON strings
-		json_encode = $.toJSON || Object.toJSON || (window.JSON && (JSON.encode || JSON.stringify)),
+		jsonEncode = $.toJSON || Object.toJSON || (window.JSON && (JSON.encode || JSON.stringify)),
 
                 // function to decode objects from JSON strings
-		json_decode = $.evalJSON || (window.JSON && (JSON.decode || JSON.parse)) || function(str){
+		jsonDecode = $.evalJSON || (window.JSON && (JSON.decode || JSON.parse)) || function(str) {
 			return String(str).evalJSON();
 		};
 
@@ -80,51 +79,52 @@
 	 * or userData behavior and behaves accordingly.
 	 * @returns undefined
 	 */
-	function _init(){
+	function init() {
                 try {
                         if (window.localStorage)
-                                _storage_service = window.localStorage;
+                                storageService = window.localStorage;
                         else if (window.globalStorage)
-                                _storage_service = window.globalStorage[window.location.hostname];
-                } catch(e) {
+                                storageService = window.globalStorage[window.location.hostname];
+                } catch (e) {
                         // Firefox fails when touching localStorage/globalStorage and cookies are disabled
                 }
 
 		// Check if browser supports userData behavior
-                if (!_storage_service) {
-			_storage_elm = document.createElement('link');
-			if(_storage_elm.addBehavior){
+                if (!storageService) {
+			storageElement = document.createElement('link');
+			if (storageElement.addBehavior) {
 
 				// Use a DOM element to act as userData storage
-				_storage_elm.style.behavior = 'url(#default#userData)';
+				storageElement.style.behavior = 'url(#default#userData)';
 
 				// userData element needs to be inserted into the DOM!
-				document.getElementsByTagName('head')[0].appendChild(_storage_elm);
+				document.getElementsByTagName('head')[0].appendChild(storageElement);
 
-				_storage_elm.load("jStorage");
+				storageElement.load("jStorage");
 				var data = "{}";
 				try{
-					data = _storage_elm.getAttribute("jStorage");
-				}catch(e){}
-				_storage_service.jStorage = data;
-			}else{
-				_storage_elm = null;
+					data = storageElement.getAttribute("jStorage");
+				} catch (e) {
+                                }
+				storageService.jStorage = data;
+			} else {
+				storageElement = null;
 				return;
 			}
 		}
 
-                if (!_storage_service)
-                        _storage_service = {jStorage:"{}"};
+                if (!storageService)
+                        storageService = { jStorage: "{}" };
 
 		// if jStorage string is retrieved, then decode it
-		if (_storage_service.jStorage) {
+		if (storageService.jStorage) {
 			try {
-				_storage = json_decode(String(_storage_service.jStorage));
-			} catch(e) {
-                                _storage_service.jStorage = "{}";
+				storage = jsonDecode(String(storageService.jStorage));
+			} catch (e) {
+                                storageService.jStorage = "{}";
                         }
 		} else {
-			_storage_service.jStorage = "{}";
+			storageService.jStorage = "{}";
 		}
 	}
 
@@ -132,15 +132,15 @@
 	 * This functions provides the "save" mechanism to store the jStorage object
 	 * @returns undefined
 	 */
-	function _save(){
+	function save() {
 		try {
-			_storage_service.jStorage = json_encode(_storage);
+			storageService.jStorage = jsonEncode(storage);
 			// If userData is used as the storage engine, additional
-			if(_storage_elm) {
-				_storage_elm.setAttribute("jStorage",_storage_service.jStorage);
-				_storage_elm.save("jStorage");
+			if (storageElement) {
+				storageElement.setAttribute("jStorage",storageService.jStorage);
+				storageElement.save("jStorage");
 			}
-		} catch(e){
+		} catch (e) {
                         // probably cache is full, nothing is saved this way
                 }
 	}
@@ -148,11 +148,9 @@
 	/**
 	 * Function checks if a key is set and is string or numberic
 	 */
-	function _checkKey(key){
-		if(!key || (typeof key != "string" && typeof key != "number")){
+	function checkKey(key){
+		if (!key || (typeof key != "string" && typeof key != "number"))
 			throw new TypeError('Key name must be string or numeric');
-		}
-		return true;
 	}
 
 	////////////////////////// PUBLIC INTERFACE /////////////////////////
@@ -171,9 +169,9 @@
 		 * @returns the used value
 		 */
 		set: function(key, value){
-			_checkKey(key);
-			_storage[key] = value;
-			_save();
+			checkKey(key);
+			storage[key] = value;
+			save();
 			return value;
 		},
 
@@ -185,10 +183,9 @@
 		 * @returns the key value, default value or <null>
 		 */
 		get: function(key, def){
-			_checkKey(key);
-			if(key in _storage){
-				return _storage[key];
-			}
+			checkKey(key);
+			if (key in storage)
+				return storage[key];
 			return typeof(def) == 'undefined' ? null : def;
 		},
 
@@ -199,10 +196,10 @@
 		 * @returns true if key existed or false if it didn't
 		 */
 		deleteKey: function(key){
-			_checkKey(key);
-			if(key in _storage){
-				delete _storage[key];
-				_save();
+			checkKey(key);
+			if (key in storage){
+				delete storage[key];
+				save();
 				return true;
 			}
 			return false;
@@ -210,36 +207,34 @@
 
 		/**
 		 * Deletes everything in cache.
-		 *
-		 * @returns true
 		 */
 		flush: function(){
-			_storage = {};
-			_save();
+			storage = {};
+			save();
 			/*
 			 * Just to be sure - andris9/jStorage#3
 			 */
 			if (window.localStorage){
-				try{
+				try {
 					localStorage.clear();
-				}catch(e){}
+				} catch (e) {
+                                }
 			}
-			return true;
 		},
 
 		/**
-		 * Returns a read-only copy of _storage
+		 * Returns a read-only copy of storage
 		 *
 		 * @returns Object
 		*/
 		storageObj: function(){
 			function F() {}
-			F.prototype = _storage;
+			F.prototype = storage;
 			return new F();
 		}
 	};
 
 	// Initialize jStorage
-	_init();
+	init();
 
 })(window.jQuery || window.$);
